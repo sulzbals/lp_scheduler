@@ -3,21 +3,18 @@ PYTHON := python3
 PIP := pip3
 
 .DEFAULT_GOAL := all
-.PHONY := activate install all
+.PHONY := install all clean purge
 
 venv:
-	$(PYTHON) -m venv $@
+	virtualenv -p $(PYTHON) $@
 
-activate: venv
-	source $</bin/activate
-
-install: venv activate
-	$(PIP) install .
+install: venv
+	source $</bin/activate && $(PIP) install .
 
 exemplo%.txt:
 	ln -s assets/$@ $@
 
-tarefas: venv activate install
+tarefas: venv install
 	echo "#! /usr/bin/env bash" > tarefas
 	echo "source $</bin/activate" >> tarefas
 	echo "lp-schedule" >> tarefas

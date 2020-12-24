@@ -1,0 +1,36 @@
+@startuml
+package lp_scheduler {
+  class Machine {
+    + cost: int
+    + maxTime: int
+    + addVar(var: LpVariable): void
+  }
+
+  class Task {
+    + runTime: int
+    + addVar(var: LpVariable): void
+  }
+
+  class LP {
+    + model(): void
+  }
+}
+
+package pulp {
+  class LpProblem {
+  }
+
+  class LpVariable {
+  }
+}
+
+LP -- Machine: envolve >
+LP -- Task: envolve >
+Machine -- Task: executa >
+
+LpProblem - LpVariable: define >
+
+LP -- LpProblem: encapsula >
+Machine -- LpVariable: associada a >
+Task -- LpVariable: associada a >
+@enduml

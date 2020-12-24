@@ -1,0 +1,48 @@
+@startuml
+hide footbox
+
+participant "lp: LP" as lp
+[o-> lp++: model()
+
+create participant "problem: LpProblem" as problem
+note over lp, problem: Definição do problema (minimização)
+lp --> problem++: problem = LpProblem(sense=LpMinimize)
+problem -[#transparent]-> problem
+problem--
+
+note over lp, problem: Definição das variáveis + Modelagem das restrições do tipo (1) (Parâmetro lowbound=0 modela equação x >= 0)
+loop for machine in machines
+  loop for task in machine.tasks
+    create participant "var: LpVariable" as var
+    lp --> var++: var = LpVariable(varName, lowBound=0)
+    var -[#transparent]-> var
+    var--
+
+    participant "machine: Machine" as machine
+    lp -> machine++: addVar(var)
+    machine--
+
+    participant "task: Task" as task
+    lp -> task++: addVar(var)
+    task--
+  end
+end
+
+note over lp, problem: Modelagem das restrições do tipo (2)
+loop for machine in machines
+  lp -> problem++: problem += sum(machine.vars) <= machine.maxTime
+  problem--
+end
+
+note over lp, problem: Modelagem das restrições do tipo (3)
+loop for task in tasks
+  lp -> problem++: problem += sum(task.vars) == task.runTime
+  problem--
+end
+
+note over lp, problem: Modelagem da função objetivo (4)
+lp -> problem++: problem += sum([sum([m.cost *  var for var in m.vars]) for m in machines])
+problem--
+
+lp--
+@enduml

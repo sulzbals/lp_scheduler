@@ -1,4 +1,4 @@
-import pulp
+from pulp import LpProblem, LpMinimize, LpVariable, PULP_CBC_CMD
 
 class Task:
   '''
@@ -44,27 +44,37 @@ class LP:
   Programa Linear
   '''
   def __init__(self, tasks, machines):
+    self.machines = machines
+    self.tasks = tasks
+
+  def model(self):
+    '''
+    Modela o programa linear
+    '''
     # Problema de minimização:
-    self.problem = pulp.LpProblem(sense=pulp.const.LpMinimize)
+    self.problem = LpProblem(sense=LpMinimize)
 
     # Para cada máquina no problema:
-    for mdx, machine in enumerate(machines):
+    for mdx, machine in enumerate(self.machines):
       # Para cada tarefa executável pela máquina:
       for tdx, task in enumerate(machine.tasks):
+        # Nome da variável representando a locação:
+        varName = "xm{}t{}".format(mdx+1, tdx+1)
+
         # Cria variável para o tempo de locação (>= 0):
-        var = pulp.LpVariable("fm{}t{}".format(mdx+1, tdx+1), lowBound=0)
+        var = LpVariable(varName, lowBound=0)
 
         # Associa variável a suas respectivas máquina e tarefa:
         machine.addVar(var)
         task.addVar(var)
 
     # Para cada máquina no problema:
-    for machine in machines:
+    for machine in self.machines:
       # Soma dos tempos de locação da máquina <= tempo máximo de uso da máquina:
       self.problem += sum(machine.vars) <= machine.maxTime
 
     # Para cada tarefa no problema:
-    for task in tasks:
+    for task in self.tasks:
       # Soma dos tempos de locação para a tarefa = tempo de execução da tarefa:
       self.problem += sum(task.vars) == task.runTime
 
@@ -72,12 +82,12 @@ class LP:
     self.problem += sum([
       sum([
         m.cost * var for var in m.vars
-      ]) for m in machines
+      ]) for m in self.machines
     ])
 
   def solve(self):
     '''
     Resolve o programa linear
     '''
-    self.problem.solve(pulp.PULP_CBC_CMD(msg=False))
+    self.problem.solve(PULP_CBC_CMD(msg=False))
     self.solution = self.problem.objective.value()

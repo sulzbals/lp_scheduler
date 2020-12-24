@@ -93,7 +93,10 @@ class Parser:
     Acessa a próxima linha e verifica se o número de valores contidos nela é
     válido
     '''
-    line = self.lines.pop(0)
+    try:
+      line = self.lines.pop(0)
+    except IndexError:
+      raise InvalidInput("Fim do arquivo inesperado")
 
     if len(line) != count:
       raise InvalidInput(
@@ -144,8 +147,10 @@ def main():
       # Associa a tarefa à máquina que pode executá-la:
       machines[mdx-1].addTask(tasks[parser.getLine(1).toInt()-1])
 
-  # Define problema:
   lp = LP(tasks, machines)
+
+  # Modela problema:
+  lp.model()
 
   # Resolve problema:
   lp.solve()
